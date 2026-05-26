@@ -4,20 +4,23 @@
  */
 (function () {
   var origin = location.protocol + '//' + location.host;
-  var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname);
+  // When this prototype is served from anywhere other than calendar.ucsd.edu,
+  // the <base href="https://calendar.ucsd.edu/"> causes relative links/scripts
+  // to resolve to the live site. Treat any non-UCSD host as "prototype mode".
+  var isPrototype = location.hostname !== 'calendar.ucsd.edu';
 
-  if (isLocal) {
+  // Local copies of selected event detail pages with food.
+  var localEventPages = {
+    'https://calendar.ucsd.edu/event/nice-people-and-free-pizza': '/event/nice-people-and-free-pizza/index.html',
+    'https://calendar.ucsd.edu/event/lets-talk-9958': '/event/lets-talk-9958/index.html',
+    'https://calendar.ucsd.edu/event/recess': '/event/recess/index.html',
+    'https://calendar.ucsd.edu/event/global-coffee-hour-3887': '/event/global-coffee-hour-3887/index.html',
+  };
+
+  if (isPrototype) {
     var localPages = {
       'upcoming.html': '/upcoming.html',
       'index.html': '/index.html',
-    };
-
-    // Local copies of selected event detail pages with food.
-    var localEventPages = {
-      'https://calendar.ucsd.edu/event/nice-people-and-free-pizza': '/event/nice-people-and-free-pizza/index.html',
-      'https://calendar.ucsd.edu/event/lets-talk-9958': '/event/lets-talk-9958/index.html',
-      'https://calendar.ucsd.edu/event/recess': '/event/recess/index.html',
-      'https://calendar.ucsd.edu/event/global-coffee-hour-3887': '/event/global-coffee-hour-3887/index.html',
     };
 
     function toLocalUrl(path) {
