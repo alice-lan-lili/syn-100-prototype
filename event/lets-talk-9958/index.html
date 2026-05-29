@@ -23,9 +23,16 @@ The community event platform.
 
   <title>Let's Talk - UC San Diego Events Calendar</title>
 
-  <!-- Base URL to use for all relative URLs contained within the document. Uncomment if necessary
-  <base href="https://example.com/">
-  -->
+  <script>
+    if (location.hostname !== 'calendar.ucsd.edu') {
+      var path = location.pathname || '';
+      var eventIdx = path.indexOf('/event/');
+      window.PROTOTYPE_BASE = eventIdx !== -1 ? path.slice(0, eventIdx) : '';
+      window.prototypeUrl = function (rel) {
+        return location.origin + window.PROTOTYPE_BASE + '/' + String(rel || '').replace(/^\//, '');
+      };
+    }
+  </script>
 
   
 	 <meta name="description" content="Let’s Talk offers a space for students to receive practical strategies, information, and support regarding general wellness-related issues. This is a great opportunity to chat with a therapist and ask questions about your well-being, accessing resources, and getting connected to CAPS. All students are welcome.
@@ -1097,5 +1104,6 @@ Let’s Talk counselors can listen to specific problems, help explore solutions
 
    });
   </script>
+  <script src="/event-food-boot.js"></script>
 </body>
 </html>

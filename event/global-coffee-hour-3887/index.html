@@ -23,9 +23,16 @@ The community event platform.
 
   <title>Global Coffee Hour - UC San Diego Events Calendar</title>
 
-  <!-- Base URL to use for all relative URLs contained within the document. Uncomment if necessary
-  <base href="https://example.com/">
-  -->
+  <script>
+    if (location.hostname !== 'calendar.ucsd.edu') {
+      var path = location.pathname || '';
+      var eventIdx = path.indexOf('/event/');
+      window.PROTOTYPE_BASE = eventIdx !== -1 ? path.slice(0, eventIdx) : '';
+      window.prototypeUrl = function (rel) {
+        return location.origin + window.PROTOTYPE_BASE + '/' + String(rel || '').replace(/^\//, '');
+      };
+    }
+  </script>
 
   
 	 <meta name="description" content="iCOMMUNITY: Come on over for a cup of coffee and a morning pastry! Global Coffee Hour is meant to bring together both international and domestic students, scholars and families to celebrate our global community at UC San Diego. Join us for fun activities and build connections that expand across the world., powered by Concept3D Event Calendar Software">
@@ -1176,5 +1183,6 @@ var LOCALIST_SETTINGS = {"theme_base":"emphasis","photo_aspect_ratio":1.54193548
 
    });
   </script>
+  <script src="/event-food-boot.js"></script>
 </body>
 </html>

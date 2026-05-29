@@ -29,7 +29,16 @@
     }
   }
 
-  /** JSON-LD for this card is usually the immediately preceding ld+json script. */
+  function slugFromCard(card) {
+    const slugAttr = card.getAttribute('data-event-slug');
+    if (slugAttr) return slugAttr;
+    const a = card.querySelector('.em-card_title a');
+    if (!a) return null;
+    const href = a.getAttribute('href') || '';
+    const m = href.match(/\/event\/([^/?#]+)/);
+    return m ? m[1] : null;
+  }
+
   function getEventForCard(card) {
     let node = card.previousElementSibling;
     while (node) {
@@ -119,13 +128,24 @@
     document.querySelectorAll('.em-card').forEach(function (card) {
       if (!(card instanceof HTMLElement)) return;
 
-      const event = getEventForCard(card);
-      const hay = cardHaystack(event, card);
-      const matched = [];
-      for (let i = 0; i < FOOD_TAGS.length; i++) {
-        if (FOOD_TAGS[i][1].test(hay)) matched.push(FOOD_TAGS[i][0]);
+      const slug = slugFromCard(card);
+      const registry = slug && window.FOOD_EVENTS ? window.FOOD_EVENTS[slug] : null;
+
+      let hasFood = false;
+      let matched = [];
+
+      if (registry) {
+        hasFood = true;
+        matched = registry.tags.slice();
+        card.setAttribute('data-event-slug', slug);
+      } else {
+        const event = getEventForCard(card);
+        const hay = cardHaystack(event, card);
+        for (let i = 0; i < FOOD_TAGS.length; i++) {
+          if (FOOD_TAGS[i][1].test(hay)) matched.push(FOOD_TAGS[i][0]);
+        }
+        hasFood = FOOD_RE.test(hay) || matched.length > 0;
       }
-      const hasFood = FOOD_RE.test(hay) || matched.length > 0;
 
       if (hasFood) {
         card.setAttribute('data-food-provided', '1');
@@ -141,22 +161,58 @@
     });
   }
 
-  function updateEmptyState(filterValue, visibleCount) {
-    const root = document.getElementById('event_results') || document.querySelector('.event_group.event_list_component');
+  function emptyMessageEl() {
+    const el = document.createElement('p');
+    el.className = 'em-calendar-empty em-filter-empty-msg';
+    el.style.margin = '1rem 0';
+    el.textContent =
+      'No events match this food filter. Try “Food provided (any)” or a different option.';
+    return el;
+  }
+
+  function updatePanelEmptyStates(filterValue, visibleCount) {
+    const panels = document.querySelectorAll('.tabs-component-panel');
+    if (panels.length) {
+      panels.forEach(function (panel) {
+        const group = panel.querySelector('.event_group');
+        if (!group) return;
+
+        let panelVisible = 0;
+        group.querySelectorAll('.em-card').forEach(function (card) {
+          if (card.style.display !== 'none') panelVisible += 1;
+        });
+
+        let msg = group.querySelector('.em-filter-empty-msg');
+        if (!filterValue || panelVisible > 0) {
+          if (msg) msg.remove();
+          group.style.minHeight = '';
+          return;
+        }
+
+        if (!msg) {
+          msg = emptyMessageEl();
+          group.insertBefore(msg, group.firstChild);
+        }
+        group.style.minHeight = '4rem';
+      });
+      return;
+    }
+
+    const root =
+      document.getElementById('event_results') ||
+      document.querySelector('.event_group.event_list_component');
     if (!root) return;
+
     let el = document.getElementById('em-filter-empty');
     if (!filterValue || visibleCount > 0) {
       if (el) el.remove();
       return;
     }
     if (!el) {
-      el = document.createElement('p');
+      el = emptyMessageEl();
       el.id = 'em-filter-empty';
-      el.className = 'em-calendar-empty';
-      el.style.margin = '1rem 0';
       root.insertBefore(el, root.firstChild);
     }
-    el.textContent = 'No events match this food filter. Try “Food provided (any)” or a different option.';
   }
 
   function updateDateHeadings() {
@@ -200,7 +256,11 @@
     });
 
     updateDateHeadings();
-    updateEmptyState(value, visibleCount);
+    updatePanelEmptyStates(value, visibleCount);
+
+    document.dispatchEvent(
+      new CustomEvent('em-food-filter-applied', { detail: { filter: value, visibleCount: visibleCount } })
+    );
   }
 
   function closeFilterDropdown() {
@@ -213,6 +273,8 @@
   }
 
   function init() {
+    if (typeof window.runFoodSeed === 'function') window.runFoodSeed();
+
     ensureFavoriteButtons();
     markFoodCards();
 
@@ -220,6 +282,7 @@
     if (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
+        if (typeof window.runFoodSeed === 'function') window.runFoodSeed();
         ensureFavoriteButtons();
         markFoodCards();
         applyFoodFilterUI();

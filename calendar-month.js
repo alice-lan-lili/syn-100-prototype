@@ -343,6 +343,10 @@
       });
     });
 
+    document.addEventListener('em-prototype-links-updated', function () {
+      setTimeout(rerenderIfCalendar, 0);
+    });
+
     document.addEventListener('click', function (e) {
       const tab = e.target.closest('a[role="tab"]');
       if (!tab) return;

@@ -23,9 +23,16 @@ The community event platform.
 
   <title>Nice People and Free Pizza with Agape San Diego - UC San Diego Events Calendar</title>
 
-  <!-- Base URL to use for all relative URLs contained within the document. Uncomment if necessary
-  <base href="https://example.com/">
-  -->
+  <script>
+    if (location.hostname !== 'calendar.ucsd.edu') {
+      var path = location.pathname || '';
+      var eventIdx = path.indexOf('/event/');
+      window.PROTOTYPE_BASE = eventIdx !== -1 ? path.slice(0, eventIdx) : '';
+      window.prototypeUrl = function (rel) {
+        return location.origin + window.PROTOTYPE_BASE + '/' + String(rel || '').replace(/^\//, '');
+      };
+    }
+  </script>
 
   
 	 <meta name="description" content="Join friends (and meet new ones) every Tuesday from noon to 2pm. The Center for Ethics &amp; Spirituality is in Price Center East at the top of the stairs near the Cross-Cultural Center., powered by Concept3D Event Calendar Software">
@@ -1133,5 +1140,6 @@ var LOCALIST_SETTINGS = {"theme_base":"emphasis","photo_aspect_ratio":1.54193548
 
    });
   </script>
+  <script src="/event-food-boot.js"></script>
 </body>
 </html>

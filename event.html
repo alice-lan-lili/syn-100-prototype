@@ -1,0 +1,107 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event - UC San Diego Events Calendar</title>
+  <script>
+    (function () {
+      var path = location.pathname || '/';
+      var base = '';
+      var idx = path.indexOf('/event.html');
+      if (idx !== -1) base = path.slice(0, idx);
+      window.PROTOTYPE_BASE = base;
+      window.prototypeUrl = function (rel) {
+        return location.origin + base + '/' + String(rel || '').replace(/^\//, '');
+      };
+      window.isPrototypeHost = function () {
+        return location.hostname !== 'calendar.ucsd.edu';
+      };
+    })();
+  </script>
+  <link rel="stylesheet" href="https://calendar.ucsd.edu/platform/stylesheet/47170919878243/48535906378817/1779471057.css" media="screen" />
+  <style>
+    main { padding-bottom: 3rem; }
+    .em-food-info {
+      margin: 2rem auto;
+      max-width: 960px;
+      padding: 1.25rem 0;
+      border-top: 1px solid #e7e7e7;
+    }
+    .em-food-info p { margin: 0.5rem 0; }
+    .em-proto-event-hero {
+      max-width: 960px;
+      margin: 1.5rem auto;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .em-proto-event-hero img {
+      width: 100%;
+      border-radius: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      .em-proto-event-hero { grid-template-columns: 1fr; }
+    }
+    .proto-back-nav {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem 1rem 0;
+    }
+    .proto-back-nav__link {
+      display: inline-block;
+      font-weight: 600;
+    }
+    .em-proto-event-hero__placeholder {
+      min-height: 200px;
+      background: #f0f0f0;
+      border-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body class="em-event-kind--standalone">
+  <main id="main-content">
+    <div id="proto-back-nav" class="proto-back-nav">
+      <a class="em-link proto-back-nav__link" id="proto-back-link" href="index.html">&larr; Back to Student Life events</a>
+    </div>
+    <div id="event-page-root" class="content-wrapper" aria-live="polite"></div>
+  </main>
+  <footer class="em-footer">
+    <div class="top-footer">
+      <div class="around-campus">
+        <div class="top-footer-container content-wrapper">
+          <h2>Around Campus</h2>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      var back = document.getElementById('proto-back-link');
+      if (back) {
+        back.href = window.getPrototypeHomeUrl
+          ? window.getPrototypeHomeUrl()
+          : window.prototypeUrl('index.html');
+      }
+      function load(file) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement('script');
+          s.src = window.prototypeUrl(file);
+          s.onload = resolve;
+          s.onerror = reject;
+          document.body.appendChild(s);
+        });
+      }
+      load('food-events-data.js')
+        .then(function () { return load('prototype-events.js'); })
+        .then(function () {
+          var back = document.getElementById('proto-back-link');
+          if (back && window.getPrototypeHomeUrl) back.href = window.getPrototypeHomeUrl();
+          return load('event-page.js');
+        })
+        .catch(function (e) { console.warn(e); });
+    })();
+  </script>
+</body>
+</html>

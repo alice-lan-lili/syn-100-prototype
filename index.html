@@ -26,8 +26,24 @@ The community event platform.
   <base href="https://calendar.ucsd.edu/">
   <script>
     (function () {
+      var path = location.pathname || '/';
+      var base = '';
+      var files = ['index.html', 'upcoming.html', 'event.html'];
+      for (var i = 0; i < files.length; i++) {
+        var marker = '/' + files[i];
+        var idx = path.indexOf(marker);
+        if (idx !== -1) { base = path.slice(0, idx); break; }
+      }
+      if (!base && path.indexOf('/event/') !== -1) base = path.split('/event/')[0];
+      window.PROTOTYPE_BASE = base;
+      window.prototypeUrl = function (rel) {
+        return location.origin + base + '/' + String(rel || '').replace(/^\//, '');
+      };
+      window.isPrototypeHost = function () {
+        return location.hostname !== 'calendar.ucsd.edu';
+      };
       var s = document.createElement('script');
-      s.src = location.protocol + '//' + location.host + '/prototype-bootstrap.js';
+      s.src = window.prototypeUrl('prototype-bootstrap.js');
       document.head.appendChild(s);
     })();
   </script>
