@@ -1,0 +1,216 @@
+/* Prototype mobile layout + interaction fixes */
+
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    touch-action: manipulation;
+  }
+
+  /* iOS horizontal-scroll freeze from full-bleed hero */
+  .html_component.clipped-text {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    overflow: hidden;
+  }
+
+  .html_component.clipped-text .content-wrapper {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .html_component.clipped-text .blurb {
+    width: 100% !important;
+    font-size: 1rem !important;
+  }
+
+  main {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .content-wrapper {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 100% !important;
+  }
+
+  /* Filter bar */
+  #em-filter-dropdown-container {
+    width: 100%;
+  }
+
+  #em-button-toggle-filter {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #filter-dropdown.em-filter-dropdown {
+    position: fixed !important;
+    inset: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 10050 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    transform: none !important;
+  }
+
+  #filter-dropdown .em-filter-dropdown-filters,
+  #filter-dropdown form {
+    max-width: 100%;
+  }
+
+  #filter-dropdown select,
+  #food_provided {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 16px !important; /* prevents iOS zoom-on-focus */
+  }
+
+  .chosen-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html.proto-filter-open,
+  body.proto-filter-open {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #filter-dropdown.em-filter-dropdown[aria-hidden='true'] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .proto-filter-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 10040;
+    pointer-events: auto;
+  }
+
+  /* Event cards */
+  .em-card-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .em-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  .em-card_image {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .em-card_image img,
+  .em-card .img_card {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 220px;
+    object-fit: cover;
+  }
+
+  .em-card_text {
+    width: 100% !important;
+    padding: 0.75rem 0 !important;
+  }
+
+  .em-card_title {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .em-card_share {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Tabs */
+  .tabs_container [role='tablist'] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+  }
+
+  /* View toggle */
+  #em-view-toggle-wrapper {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  #em-view-toggle-wrapper .em-button {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Calendar */
+  #em-calendar-view {
+    padding: 0.75rem;
+    overflow-x: hidden;
+  }
+
+  .em-calendar-day {
+    min-height: 2.75rem;
+    padding: 0.2rem;
+  }
+
+  .em-calendar-day-num {
+    font-size: 0.8rem;
+  }
+
+  .em-calendar-day-count,
+  .em-calendar-day-dots {
+    display: none;
+  }
+
+  .em-calendar-month-label {
+    font-size: 1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  /* Event detail (event.html) */
+  .em-proto-event-hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  .proto-back-nav {
+    padding: 0.75rem 1rem 0 !important;
+  }
+
+  .em-food-info {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .em-calendar-weekday {
+    font-size: 0.65rem;
+    padding: 0.15rem 0;
+  }
+}

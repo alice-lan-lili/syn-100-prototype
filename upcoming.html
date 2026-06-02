@@ -42,6 +42,10 @@ The community event platform.
       window.isPrototypeHost = function () {
         return location.hostname !== 'calendar.ucsd.edu';
       };
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = window.prototypeUrl('prototype-mobile.css');
+      document.head.appendChild(link);
       var s = document.createElement('script');
       s.src = window.prototypeUrl('prototype-bootstrap.js');
       document.head.appendChild(s);
@@ -81,16 +85,29 @@ The community event platform.
 //<![CDATA[
 var LOCALIST_SETTINGS = {"theme_base":"emphasis","photo_aspect_ratio":1.5419354838709678,"country":"US","locale":"en-US","user_id":null,"platform_id":47170919878243,"default_calendar_view":"year","show_cookie_consent_prompt":false,"date_time_formats":{"detailed":"%A, %B %-d, %Y%[start| %-I:%M%P]%[end_date| - %A, %B %-d, %Y|%[end| to]]%[end| %-I:%M%P]%[start| %Z]","compact":"%a, %b %-d%[not_current_year|, %Y]%[start| %-I%[nonzero_minutes|:%M]%P]%[end_date| - %a, %b %-d%[not_current_year|, %Y]|%[end| to]]%[end| %-I%[nonzero_minutes|:%M]%P]%[start| %Z]","compact_time":"%[start|%-I%[nonzero_minutes|:%M]%P %Z]","admin_short_date_time":"%-m/%-d/%Y%[start| %-I:%M%P]%[end_date| - %-m/%-d/%Y]%[end| %-I:%M%P]%[start| %Z]"},"time_zone":{"identifier":"America/Los_Angeles"},"interest_button":{"going_aria_label":"I'm Interested in %{event_name}","going_label":"I'm Interested","going_past_aria_label":"I'm Interested in %{event_name}","going_past_label":"I'm Interested","going_class":"imgoing","going_icon":"fa-heart","going_show_icon":true,"cancel_plans_label":"Not Interested","cancel_plans_aria_label":"Not Interested in %{event_name}","cancel_plans_class":"cancelplans","cancel_plans_icon":"fa-heart","cancel_plans_show_icon":true,"change_dates_label":"Change Dates","change_dates_aria_label":"Change Dates on %{event_name}","change_dates_class":"","change_dates_icon":"fa-heart","change_dates_show_icon":true}};
 //]]>
-</script><script src="https://localist-images.azureedge.net/packs/js/runtime-b41ed59d80a3b61eac73.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/728-13bdbd9fe27546e3921a.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/571-39a7c77892dc406c64ce.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/511-a5bb2e1af26f329a0ba5.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/754-3eb3d990380082b993c0.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/application-be0f16dc3857bc081d22.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/186-e879d10033a23deb09e7.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/316-29d07363e6c5d5b97a46.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/448-f8f914110606ed9cee6d.js"></script>
-<script src="https://localist-images.azureedge.net/packs/js/theme-emphasis-f97c9d2a5b863a5c7c29.js"></script>
+</script>
+<script>
+(function () {
+  var isProto = location.hostname !== 'calendar.ucsd.edu';
+  var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  window.PROTOTYPE_MOBILE = isProto && isMobile;
+  if (window.PROTOTYPE_MOBILE) return;
+  [
+    'https://localist-images.azureedge.net/packs/js/runtime-b41ed59d80a3b61eac73.js',
+    'https://localist-images.azureedge.net/packs/js/728-13bdbd9fe27546e3921a.js',
+    'https://localist-images.azureedge.net/packs/js/571-39a7c77892dc406c64ce.js',
+    'https://localist-images.azureedge.net/packs/js/511-a5bb2e1af26f329a0ba5.js',
+    'https://localist-images.azureedge.net/packs/js/754-3eb3d990380082b993c0.js',
+    'https://localist-images.azureedge.net/packs/js/application-be0f16dc3857bc081d22.js',
+    'https://localist-images.azureedge.net/packs/js/186-e879d10033a23deb09e7.js',
+    'https://localist-images.azureedge.net/packs/js/316-29d07363e6c5d5b97a46.js',
+    'https://localist-images.azureedge.net/packs/js/448-f8f914110606ed9cee6d.js',
+    'https://localist-images.azureedge.net/packs/js/theme-emphasis-f97c9d2a5b863a5c7c29.js'
+  ].forEach(function (src) {
+    document.write('<script src="' + src + '"><\/script>');
+  });
+})();
+</script>
   <!-- end include javascripts -->
 
   
@@ -2997,6 +3014,17 @@ var LOCALIST_SETTINGS = {"theme_base":"emphasis","photo_aspect_ratio":1.54193548
       margin: 0;
     }
     .em-food-provided-line i { color: #182b49; margin-right: 0.5rem; }
+    .em-food-provided-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem 0 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f0f4f8;
+      border-radius: 0.35rem;
+      font-weight: 600;
+      color: #182b49;
+    }
     .em-card .em-food-provided-line { display: none !important; }
     .em-card[data-food-provided="1"] .em-food-provided-line { display: block !important; }
     .em-card .em-interested-tag { display: inline-flex !important; align-items: center; }

@@ -124,41 +124,77 @@
     });
   }
 
-  function markFoodCards() {
-    document.querySelectorAll('.em-card').forEach(function (card) {
-      if (!(card instanceof HTMLElement)) return;
+  function markOneFoodCard(card) {
+    if (!(card instanceof HTMLElement)) return;
 
-      const slug = slugFromCard(card);
-      const registry = slug && window.FOOD_EVENTS ? window.FOOD_EVENTS[slug] : null;
+    const slug = slugFromCard(card);
+    const registry = slug && window.FOOD_EVENTS ? window.FOOD_EVENTS[slug] : null;
 
-      let hasFood = false;
-      let matched = [];
+    let hasFood = false;
+    let matched = [];
 
-      if (registry) {
-        hasFood = true;
-        matched = registry.tags.slice();
-        card.setAttribute('data-event-slug', slug);
-      } else {
-        const event = getEventForCard(card);
-        const hay = cardHaystack(event, card);
-        for (let i = 0; i < FOOD_TAGS.length; i++) {
-          if (FOOD_TAGS[i][1].test(hay)) matched.push(FOOD_TAGS[i][0]);
-        }
-        hasFood = FOOD_RE.test(hay) || matched.length > 0;
+    if (registry) {
+      hasFood = true;
+      matched = registry.tags.slice();
+      card.setAttribute('data-event-slug', slug);
+    } else {
+      const event = getEventForCard(card);
+      const hay = cardHaystack(event, card);
+      for (let i = 0; i < FOOD_TAGS.length; i++) {
+        if (FOOD_TAGS[i][1].test(hay)) matched.push(FOOD_TAGS[i][0]);
       }
+      hasFood = FOOD_RE.test(hay) || matched.length > 0;
+    }
 
-      if (hasFood) {
-        card.setAttribute('data-food-provided', '1');
-        insertFoodLine(card);
-        if (matched.length) card.setAttribute('data-food-tags', matched.join(' '));
-        else card.removeAttribute('data-food-tags');
-      } else {
-        card.removeAttribute('data-food-provided');
-        card.removeAttribute('data-food-tags');
-        const line = card.querySelector('.em-food-provided-line');
-        if (line) line.remove();
+    if (hasFood) {
+      card.setAttribute('data-food-provided', '1');
+      insertFoodLine(card);
+      if (slug) card.setAttribute('data-event-slug', slug);
+      if (matched.length) card.setAttribute('data-food-tags', matched.join(' '));
+      else card.removeAttribute('data-food-tags');
+
+      if (slug && typeof window.registerFoodEventForCard === 'function') {
+        const jsonEvent = getEventForCard(card);
+        const hay = cardHaystack(jsonEvent, card);
+        window.registerFoodEventForCard(slug, {
+          registry: registry,
+          jsonEvent: jsonEvent,
+          haystack: hay,
+          tags: matched,
+          title: jsonEvent && jsonEvent.name,
+        });
       }
-    });
+    } else {
+      card.removeAttribute('data-food-provided');
+      card.removeAttribute('data-food-tags');
+      const line = card.querySelector('.em-food-provided-line');
+      if (line) line.remove();
+    }
+  }
+
+  function markFoodCards(done) {
+    const cards = Array.from(document.querySelectorAll('.em-card'));
+    const batchSize = window.PROTOTYPE_MOBILE ? 15 : cards.length;
+    let index = 0;
+
+    function processBatch() {
+      const end = Math.min(index + batchSize, cards.length);
+      for (; index < end; index++) markOneFoodCard(cards[index]);
+      if (index < cards.length) {
+        if (window.schedulePrototypeWork) window.schedulePrototypeWork(processBatch, 800);
+        else requestAnimationFrame(processBatch);
+      } else {
+        if (window.persistPrototypeEventsCache) window.persistPrototypeEventsCache();
+        if (typeof done === 'function') done();
+      }
+    }
+
+    if (!cards.length) {
+      if (window.persistPrototypeEventsCache) window.persistPrototypeEventsCache();
+      if (typeof done === 'function') done();
+    } else {
+      processBatch();
+    }
   }
 
   function emptyMessageEl() {
@@ -231,45 +267,77 @@
     });
   }
 
-  function applyFoodFilterUI() {
+  function filterOneCard(card, value) {
+    const hasAnyFood = card.getAttribute('data-food-provided') === '1';
+    const tags = (card.getAttribute('data-food-tags') || '').split(/\s+/).filter(Boolean);
+    let visible = true;
+    if (value === '') {
+      visible = true;
+    } else if (value === 'any_food') {
+      visible = hasAnyFood;
+    } else {
+      visible = hasAnyFood && tags.includes(value);
+    }
+    card.style.display = visible ? '' : 'none';
+    return visible ? 1 : 0;
+  }
+
+  function applyFoodFilterUI(done) {
     const sel = document.getElementById('food_provided');
-    if (!sel) return;
+    if (!sel) {
+      if (done) done();
+      return;
+    }
     const value = String(sel.value || '');
+    const cards = Array.from(document.querySelectorAll('.em-card'));
     let visibleCount = 0;
+    let index = 0;
+    const batchSize = window.PROTOTYPE_MOBILE ? 25 : cards.length;
 
-    document.querySelectorAll('.em-card').forEach(function (card) {
-      if (!(card instanceof HTMLElement)) return;
-      const hasAnyFood = card.getAttribute('data-food-provided') === '1';
-      const tags = (card.getAttribute('data-food-tags') || '').split(/\s+/).filter(Boolean);
+    function finish() {
+      updateDateHeadings();
+      updatePanelEmptyStates(value, visibleCount);
+      document.dispatchEvent(
+        new CustomEvent('em-food-filter-applied', { detail: { filter: value, visibleCount: visibleCount } })
+      );
+      if (done) done();
+    }
 
-      let visible = true;
-      if (value === '') {
-        visible = true;
-      } else if (value === 'any_food') {
-        visible = hasAnyFood;
-      } else {
-        visible = hasAnyFood && tags.includes(value);
+    function processBatch() {
+      const end = Math.min(index + batchSize, cards.length);
+      for (; index < end; index++) {
+        if (cards[index] instanceof HTMLElement) {
+          visibleCount += filterOneCard(cards[index], value);
+        }
       }
+      if (index < cards.length) {
+        requestAnimationFrame(processBatch);
+      } else {
+        finish();
+      }
+    }
 
-      card.style.display = visible ? '' : 'none';
-      if (visible) visibleCount += 1;
-    });
-
-    updateDateHeadings();
-    updatePanelEmptyStates(value, visibleCount);
-
-    document.dispatchEvent(
-      new CustomEvent('em-food-filter-applied', { detail: { filter: value, visibleCount: visibleCount } })
-    );
+    if (!cards.length) {
+      finish();
+    } else {
+      processBatch();
+    }
   }
 
   function closeFilterDropdown() {
+    if (typeof window.closePrototypeFilter === 'function') {
+      window.closePrototypeFilter();
+      return;
+    }
     const dropdown = document.getElementById('filter-dropdown');
     const btn = document.getElementById('em-button-toggle-filter');
     if (!dropdown || !btn) return;
     dropdown.style.display = 'none';
+    dropdown.style.pointerEvents = 'none';
     dropdown.setAttribute('aria-hidden', 'true');
     btn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('proto-filter-open');
+    document.documentElement.classList.remove('proto-filter-open');
   }
 
   function init() {
@@ -282,11 +350,29 @@
     if (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        if (typeof window.runFoodSeed === 'function') window.runFoodSeed();
-        ensureFavoriteButtons();
-        markFoodCards();
-        applyFoodFilterUI();
         closeFilterDropdown();
+
+        const runFilter = function () {
+          const needsMarking = !document.querySelector('.em-card[data-food-provided]');
+          if (needsMarking) {
+            markFoodCards(function () {
+              applyFoodFilterUI();
+            });
+          } else {
+            applyFoodFilterUI();
+          }
+        };
+
+        if (window.PROTOTYPE_MOBILE) {
+          requestAnimationFrame(function () {
+            setTimeout(runFilter, 0);
+          });
+        } else {
+          ensureFavoriteButtons();
+          if (typeof window.runFoodSeed === 'function') window.runFoodSeed();
+          markFoodCards();
+          applyFoodFilterUI();
+        }
       });
     }
   }

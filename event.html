@@ -17,6 +17,10 @@
       window.isPrototypeHost = function () {
         return location.hostname !== 'calendar.ucsd.edu';
       };
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = window.prototypeUrl('prototype-mobile.css');
+      document.head.appendChild(link);
     })();
   </script>
   <link rel="stylesheet" href="https://calendar.ucsd.edu/platform/stylesheet/47170919878243/48535906378817/1779471057.css" media="screen" />
@@ -29,6 +33,17 @@
       border-top: 1px solid #e7e7e7;
     }
     .em-food-info p { margin: 0.5rem 0; }
+    .em-food-provided-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem 0 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f0f4f8;
+      border-radius: 0.35rem;
+      font-weight: 600;
+      color: #182b49;
+    }
     .em-proto-event-hero {
       max-width: 960px;
       margin: 1.5rem auto;
@@ -94,6 +109,7 @@
         });
       }
       load('food-events-data.js')
+        .then(function () { return load('food-infer.js'); })
         .then(function () { return load('prototype-events.js'); })
         .then(function () {
           var back = document.getElementById('proto-back-link');

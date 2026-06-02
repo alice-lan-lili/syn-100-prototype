@@ -87,6 +87,7 @@
   }
 
   function rewriteAllEventLinks() {
+    if (window.PROTOTYPE_MOBILE) return;
     document.querySelectorAll('a[href*="calendar.ucsd.edu/event/"]').forEach(function (a) {
       var href = a.getAttribute('href') || '';
       if (!shouldRouteEventHref(href)) return;
@@ -96,31 +97,41 @@
     });
   }
 
+  var localPages = {
+    'upcoming.html': 'upcoming.html',
+    'index.html': 'index.html',
+  };
+
+  function runFixLinks() {
+    rewriteCardLinks();
+    rewriteAllEventLinks();
+    if (typeof window.scanPrototypeEventsFromPage === 'function') {
+      window.scanPrototypeEventsFromPage();
+    }
+    Object.keys(localPages).forEach(function (rel) {
+      var full = toLocalUrl(localPages[rel]);
+      document.querySelectorAll('a[href="' + rel + '"], a[href="./' + rel + '"]').forEach(function (a) {
+        a.href = full;
+      });
+    });
+  }
+
+  function scheduleFixLinks() {
+    var run = function () {
+      runFixLinks();
+      document.dispatchEvent(new CustomEvent('em-prototype-links-updated'));
+    };
+    if (window.schedulePrototypeWork) {
+      window.schedulePrototypeWork(run, 1500);
+    } else {
+      setTimeout(run, 50);
+    }
+  }
+
   var fixLinks = null;
 
   if (isPrototype) {
-    var localPages = {
-      'upcoming.html': 'upcoming.html',
-      'index.html': 'index.html',
-    };
-
-    fixLinks = function () {
-      Object.keys(localPages).forEach(function (rel) {
-        var full = toLocalUrl(localPages[rel]);
-        document.querySelectorAll('a[href="' + rel + '"], a[href="./' + rel + '"]').forEach(function (a) {
-          a.href = full;
-        });
-      });
-
-      rewriteAllEventLinks();
-      rewriteCardLinks();
-      if (typeof window.scanPrototypeEventsFromPage === 'function') {
-        window.scanPrototypeEventsFromPage();
-      }
-    };
-
-    document.addEventListener('DOMContentLoaded', fixLinks);
-    if (document.readyState !== 'loading') fixLinks();
+    fixLinks = runFixLinks;
 
     document.addEventListener(
       'click',
@@ -130,7 +141,7 @@
         var raw = a.getAttribute('href') || a.href || '';
         var key = raw.replace(/^\.\//, '');
 
-        if (localPages[key]) {
+        if (isPrototype && localPages[key]) {
           e.preventDefault();
           location.assign(toLocalUrl(localPages[key]));
           return;
@@ -163,10 +174,19 @@
       : loadScript('prototype-urls.js').catch(function () {});
     chain = chain
       .then(function () {
+        return loadScript('prototype-mobile.js');
+      })
+      .then(function () {
         return loadScript('food-events-data.js');
       })
       .then(function () {
+        return loadScript('food-infer.js');
+      })
+      .then(function () {
         return loadScript('prototype-events.js');
+      })
+      .then(function () {
+        if (typeof window.rememberPrototypeHome === 'function') window.rememberPrototypeHome();
       })
       .then(function () {
         return loadScript('food-seed.js');
@@ -191,8 +211,13 @@
     chain
       .then(function () {
         if (typeof window.runFoodSeed === 'function') window.runFoodSeed();
-        if (isPrototype && typeof fixLinks === 'function') fixLinks();
-        document.dispatchEvent(new CustomEvent('em-prototype-links-updated'));
+        if (typeof window.enrichPrototypeEventsWithFood === 'function') {
+          window.enrichPrototypeEventsWithFood();
+        }
+        if (isPrototype) {
+          rewriteCardLinks();
+          scheduleFixLinks();
+        }
       })
       .catch(function (err) {
         console.warn('Prototype script load failed', err);

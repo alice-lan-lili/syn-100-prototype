@@ -1,6 +1,4 @@
 (function () {
-  if (!window.FOOD_EVENTS) return;
-
   function getSlug() {
     var m = location.pathname.match(/\/event\/([^/]+)\//);
     if (m) return m[1];
@@ -8,34 +6,24 @@
     return params.get('e') || params.get('slug');
   }
 
-  function foodSectionHtml(ev) {
-    var f = ev.food;
-    if (!f) return '';
-    return (
-      '<section class="em-food-info content-wrapper" aria-labelledby="food-info-heading">' +
-      '<h2 id="food-info-heading" class="em-content_label">Food &amp; Allergen Information</h2>' +
-      '<p><strong>What&rsquo;s served:</strong> ' +
-      f.menu +
-      '</p>' +
-      '<p><strong>Quantity:</strong> ' +
-      f.quantity +
-      '</p>' +
-      '<p><strong>Allergen info:</strong> ' +
-      f.allergens +
-      '</p>' +
-      '</section>'
-    );
-  }
-
   function injectFoodSection() {
     var slug = getSlug();
-    if (!slug || !window.FOOD_EVENTS[slug]) return;
-    var ev = window.FOOD_EVENTS[slug];
+    if (!slug) return;
 
-    var existing = document.querySelector('.em-food-info');
-    if (existing) existing.remove();
+    var ev = window.getPrototypeEvent ? window.getPrototypeEvent(slug) : null;
+    if (!ev && window.FOOD_EVENTS && window.FOOD_EVENTS[slug]) {
+      ev = window.FOOD_EVENTS[slug];
+      if (window.ensureEventHasFood) ev = window.ensureEventHasFood(ev);
+    }
+    if (!ev || (!ev.hasFood && !ev.food)) return;
 
-    var html = foodSectionHtml(ev);
+    document.querySelectorAll('.em-food-info, .em-food-provided-banner').forEach(function (el) {
+      el.remove();
+    });
+
+    var html = window.renderFoodDetailSection
+      ? window.renderFoodDetailSection(ev)
+      : '';
     if (!html) return;
 
     var main = document.querySelector('main');
@@ -48,12 +36,15 @@
 
     var wrap = document.createElement('div');
     wrap.innerHTML = html;
-    var section = wrap.firstElementChild;
 
     if (anchor && anchor.parentNode) {
-      anchor.parentNode.insertBefore(section, anchor.nextSibling);
+      while (wrap.firstChild) {
+        anchor.parentNode.insertBefore(wrap.firstChild, anchor.nextSibling);
+      }
     } else {
-      main.appendChild(section);
+      while (wrap.firstChild) {
+        main.appendChild(wrap.firstChild);
+      }
     }
   }
 

@@ -10,7 +10,7 @@
   function normalizeJsonLdEvent(item) {
     if (!item || item['@type'] !== 'Event') return null;
     var slug = slugFromUrl(item.url);
-    if (!slug) return null;
+    if (!slug || /^\d+$/.test(slug)) return null;
 
     var loc = item.location;
     var locationName = '';
@@ -54,36 +54,57 @@
         virtual: !!f.virtual,
         food: f.food,
         tags: f.tags,
+        hasFood: true,
       });
     });
   }
 
-  function scanPageJsonLd() {
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (script) {
-      var parsed;
-      try {
-        parsed = JSON.parse(script.textContent || '');
-      } catch (e) {
-        return;
-      }
-      var items = Array.isArray(parsed) ? parsed : [parsed];
-      items.forEach(function (item) {
-        var ev = normalizeJsonLdEvent(item);
-        if (!ev) return;
-        if (!window.PROTOTYPE_EVENTS[ev.slug]) {
-          window.PROTOTYPE_EVENTS[ev.slug] = ev;
+  function jsonLdFromCard(card) {
+    var node = card.previousElementSibling;
+    while (node) {
+      if (node instanceof HTMLScriptElement && node.type === 'application/ld+json') {
+        try {
+          var parsed = JSON.parse(node.textContent || '');
+          var items = Array.isArray(parsed) ? parsed : [parsed];
+          for (var i = 0; i < items.length; i++) {
+            var ev = normalizeJsonLdEvent(items[i]);
+            if (ev) return ev;
+          }
+        } catch (e) {
+          return null;
         }
-      });
-    });
+      }
+      if (node.classList && node.classList.contains('em-card')) break;
+      node = node.previousElementSibling;
+    }
+    return null;
+  }
+
+  function scanCardsJsonLd() {
+    var cards = document.querySelectorAll('.em-card');
+    for (var i = 0; i < cards.length; i++) {
+      var ev = jsonLdFromCard(cards[i]);
+      if (!ev) continue;
+      if (!window.PROTOTYPE_EVENTS[ev.slug]) {
+        window.PROTOTYPE_EVENTS[ev.slug] = ev;
+      }
+      if (window.ensureEventHasFood) {
+        window.PROTOTYPE_EVENTS[ev.slug] = window.ensureEventHasFood(window.PROTOTYPE_EVENTS[ev.slug]);
+      }
+    }
   }
 
   function persistCache() {
     try {
-      sessionStorage.setItem('prototype-events', JSON.stringify(window.PROTOTYPE_EVENTS));
+      var json = JSON.stringify(window.PROTOTYPE_EVENTS);
+      if (json.length > 1500000) return;
+      sessionStorage.setItem('prototype-events', json);
     } catch (e) {
       /* quota */
     }
   }
+
+  window.persistPrototypeEventsCache = persistCache;
 
   function loadCache() {
     try {
@@ -123,19 +144,29 @@
 
   window.getPrototypeEvent = function (slug) {
     if (!slug) return null;
-    if (window.PROTOTYPE_EVENTS[slug]) return window.PROTOTYPE_EVENTS[slug];
-    if (window.FOOD_EVENTS && window.FOOD_EVENTS[slug]) {
+    var ev = null;
+    if (window.PROTOTYPE_EVENTS[slug]) ev = window.PROTOTYPE_EVENTS[slug];
+    if (!ev && window.FOOD_EVENTS && window.FOOD_EVENTS[slug]) {
       mergeFoodEvents();
-      return window.PROTOTYPE_EVENTS[slug];
+      ev = window.PROTOTYPE_EVENTS[slug];
     }
-    loadCache();
-    return window.PROTOTYPE_EVENTS[slug] || null;
+    if (!ev) {
+      loadCache();
+      ev = window.PROTOTYPE_EVENTS[slug] || null;
+    }
+    if (ev && window.ensureEventHasFood) {
+      ev = window.ensureEventHasFood(ev);
+      window.PROTOTYPE_EVENTS[slug] = ev;
+    }
+    return ev;
   };
 
   window.scanPrototypeEventsFromPage = function () {
     loadCache();
-    scanPageJsonLd();
     mergeFoodEvents();
+    scanCardsJsonLd();
+    mergeFoodEvents();
+    if (window.enrichPrototypeEventsWithFood) window.enrichPrototypeEventsWithFood();
     persistCache();
     return window.PROTOTYPE_EVENTS;
   };
@@ -152,16 +183,4 @@
 
   loadCache();
   mergeFoodEvents();
-
-  if (document.querySelector('.em-card, script[type="application/ld+json"]')) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () {
-        window.rememberPrototypeHome();
-        window.scanPrototypeEventsFromPage();
-      });
-    } else {
-      window.rememberPrototypeHome();
-      window.scanPrototypeEventsFromPage();
-    }
-  }
 })();

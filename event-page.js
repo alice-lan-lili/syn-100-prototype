@@ -31,9 +31,12 @@
   }
 
   function foodSectionHtml(ev) {
-    if (!ev.food) return '';
+    if (window.renderFoodDetailSection) return window.renderFoodDetailSection(ev);
+    if (!ev || !ev.food) return '';
     var f = ev.food;
     return (
+      '<div class="em-food-provided-banner" role="status">' +
+      '<i class="fas fa-utensils" aria-hidden="true"></i> Food provided</div>' +
       '<section class="em-food-info" aria-labelledby="food-info-heading">' +
       '<h2 id="food-info-heading" class="em-content_label">Food &amp; Allergen Information</h2>' +
       '<p><strong>What&rsquo;s served:</strong> ' +
@@ -101,6 +104,8 @@
       ? '<div class="em-about_description"><p>' + ev.description.replace(/\n/g, '<br>') + '</p></div>'
       : '';
 
+    var foodHtml = ev.hasFood || ev.food ? foodSectionHtml(ev) : '';
+
     root.innerHTML =
       '<div class="em-proto-event-hero">' +
       imageHtml +
@@ -112,7 +117,7 @@
       loc +
       desc +
       '</div></div>' +
-      foodSectionHtml(ev);
+      foodHtml;
   }
 
   if (document.readyState === 'loading') {

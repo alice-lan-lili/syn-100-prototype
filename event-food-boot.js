@@ -29,6 +29,9 @@
       return load('food-events-data.js');
     })
     .then(function () {
+      return load('food-infer.js');
+    })
+    .then(function () {
       return load('prototype-events.js');
     })
     .then(function () {
