@@ -36,6 +36,16 @@
     padding-left: 1rem !important;
     padding-right: 1rem !important;
     max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .event_list_component,
+  .event_group,
+  .tabs-component-panel {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* Filter bar */
@@ -110,17 +120,28 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
   }
 
   .em-card {
     width: 100% !important;
     max-width: 100% !important;
     flex-direction: column !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .em-card_image {
     width: 100% !important;
     max-width: 100% !important;
+    margin: 0 !important;
   }
 
   .em-card_image img,
@@ -129,21 +150,72 @@
     height: auto !important;
     max-height: 220px;
     object-fit: cover;
+    display: block;
   }
 
   .em-card_text {
     width: 100% !important;
-    padding: 0.75rem 0 !important;
+    padding: 1rem 1.25rem 1.25rem !important;
+    box-sizing: border-box;
   }
 
   .em-card_title {
     font-size: 1.1rem !important;
     line-height: 1.3 !important;
+    margin: 0 0 0.5rem !important;
+    padding: 0 !important;
+  }
+
+  .em-card_title a {
+    display: inline-block;
+    padding: 0;
+  }
+
+  .em-card_event-text {
+    margin: 0 0 0.35rem !important;
+    padding: 0 !important;
+    line-height: 1.45 !important;
+  }
+
+  .em-card_event-text a {
+    display: inline;
+    padding: 0;
+    word-break: break-word;
+  }
+
+  .em-card_event-text i,
+  .em-food-provided-line i {
+    margin-right: 0.4rem;
+    width: 1rem;
+    text-align: center;
+  }
+
+  .em-food-provided-line {
+    margin-top: 0.25rem !important;
   }
 
   .em-card_share {
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-top: 0.5rem !important;
+    padding: 0 !important;
+  }
+
+  .em-card_share .em-interested-tag,
+  .em-card_share .em-share_dropdown {
+    margin: 0;
+  }
+
+  #em-view-toggle-wrapper {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .em-filter-wrapper,
+  #em-filter-dropdown-container {
+    padding-left: 0;
+    padding-right: 0;
+    box-sizing: border-box;
   }
 
   /* Tabs */
